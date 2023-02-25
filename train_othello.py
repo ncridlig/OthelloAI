@@ -79,7 +79,7 @@ def validate_normal_model(val_loader, model, args, criterion):
         loss.backward()
         losses += loss.item()
 
-    avg_accuracy = 100*running_accuracy/num_examples
+    avg_accuracy = [100*running_accuracy[i]/num_examples for i in range(len(running_accuracy))]
     avg_loss = losses/num_examples
     return avg_accuracy, avg_loss
 
@@ -127,7 +127,7 @@ def normal_train(model, train_loader, val_loader, args):
             optimizer.zero_grad()
             losses += loss.item()
 
-        avg_accuracy = 100*running_accuracy/num_examples
+        avg_accuracy = [100 * running_accuracy[i] / num_examples for i in range(len(running_accuracy))]
         avg_loss = losses/num_examples
         val_accuracy, val_loss = validate_normal_model(val_loader, model, args, criterion)
         print('----------------------------  Epoch ' + str(epoch_count) + ' ----------------------------')
