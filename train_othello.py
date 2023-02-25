@@ -47,6 +47,7 @@ def normal_train(train_loader, val_loader, args):
             model.scheduler.step()  # Update learning rate schedule
             optimizer.zero_grad()
             losses += loss.item()
+            print('yo')
 
         # Run on validation set
         run_eval(args, model, datasets, tokenizer, split='validation')
