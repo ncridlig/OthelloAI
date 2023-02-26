@@ -75,6 +75,7 @@ def validate_normal_model(val_loader, model, args, criterion):
         logits = model(inputs)
         prediction, batch_accuracies = compute_accuracy(logits, labels, args)
         running_accuracy = [running_accuracy[i] + batch_accuracies[i] for i in range(len(running_accuracy))]
+        labels = labels.to(torch.int32)
         loss = criterion(logits, labels)
         loss.backward()
         losses += loss.item()
@@ -131,10 +132,10 @@ def normal_train(model, train_loader, val_loader, args):
         avg_loss = losses/num_examples
         val_accuracy, val_loss = validate_normal_model(val_loader, model, args, criterion)
         print('----------------------------  Epoch ' + str(epoch_count) + ' ----------------------------')
-        print('Training Loss: ' + avg_loss)
-        print('Training Accuracies: ' + avg_accuracy)
-        print('Validation Loss: ' + val_loss)
-        print('Validation Accuracies: ' + val_accuracy)
+        print('Training Loss: ', avg_loss)
+        print('Training Accuracies: ', avg_accuracy)
+        print('Validation Loss: ', val_loss)
+        print('Validation Accuracies: ', val_accuracy)
         print('-----------------------------------------------------------------')
 
     
@@ -148,11 +149,11 @@ def params():
     parser = argparse.ArgumentParser()
     parser.add_argument("--learning-rate", default=1e-3, type=float,
                         help="Model learning rate starting point.")
-    parser.add_argument("--batch-size", default=1024, type=int,
+    parser.add_argument("--batch-size", default=4096, type=int,
                         help="Batch size per GPU/CPU for training and evaluation.")
     parser.add_argument("--weight-decay", default=1e-8, type=float,
                         help="L2 Regularization")
-    parser.add_argument("--epochs", default=100, type=int,
+    parser.add_argument("--epochs", default=10, type=int,
                         help="Number of epochs to train for")
     parser.add_argument("--swa-enabled", action='store_true',
                         help="Enables Stochastic Weighting Average")

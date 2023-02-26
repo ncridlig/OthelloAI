@@ -9,3 +9,8 @@ Steps:
 * Train
 * Optimize parameters
 * Type report
+
+TO-DO:
+get CPU and CUDA working
+Add stochastic weighting average
+Add test_accuracy method
