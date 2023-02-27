@@ -1,0 +1,2 @@
+Model name,Learning rate,Batch size,Weight decay,Epochs,Stochastic Weighting Averaging,Softmax Sampling,Max Training Accuracy,Max Training Accuracy3,Max Training Accuracy5,Max Validation Accuracy,Max Validation Accuracy3,Max Validation Accuracy5,Testing Accuracy,Testing Accuracy3,Testing Accuracy5,Testing Loss
+20230226-142359,0.001,4096,0.0001,3,False,False,39.74368845567977,71.57016572746114,85.26380299158461,45.26665390346022,78.29727727511091,90.8612667204941,45.19635752218282,78.18175764537449,90.7689490419351,0.0004042383436496302
