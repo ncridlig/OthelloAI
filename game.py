@@ -15,8 +15,8 @@ RED = (220, 0, 0)
 use_ai = True
 
 # Set the dimensions of the game board
-BOARD_SIZE = (400, 400)
-SQUARE_SIZE = 50
+BOARD_SIZE = (480, 480)
+SQUARE_SIZE = 60
 
 # Initialize pygame
 pygame.init()
@@ -217,14 +217,14 @@ def ai_vs_player_game_loop(model):
 
             if event.type == pygame.QUIT:
                 game_over = True
-            elif event.type == pygame.MOUSEBUTTONDOWN and turn == -1:
+            elif event.type == pygame.MOUSEBUTTONDOWN and turn == 1:
                 player = turn
                 pos = pygame.mouse.get_pos()
                 row = pos[1] // SQUARE_SIZE
                 col = pos[0] // SQUARE_SIZE
                 if make_move(row, col, player):
                     turn *= -1
-            elif turn == 1:
+            elif turn == -1:
                 player = turn
                 time.sleep(1)
                 start_time = time.time()
@@ -308,8 +308,8 @@ if __name__ == '__main__':
     best_model.load_state_dict(torch.load(os.path.join('models', timestr + '.pth')))
 
     # Start the game loop
-    # ai_vs_player_game_loop(best_model)
-    ai_vs_ai_game_loop(best_model)
+    ai_vs_player_game_loop(best_model)
+    # ai_vs_ai_game_loop(best_model)
 
 # Quit pygame
 pygame.quit()
