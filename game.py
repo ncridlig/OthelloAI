@@ -41,8 +41,8 @@ def make_board_matrices(board, tile):
 
     np_board = np.array(board)
     opp_tile = 1 if tile == -1 else -1
-    player_positions = np.argwhere(np_board == -1)
-    opponent_positions = np.argwhere(np_board == 1)
+    player_positions = np.argwhere(np_board == tile)
+    opponent_positions = np.argwhere(np_board == opp_tile)
 
     # Make player and opponent matrices
     player_matrix = np.zeros(shape=(8,8))
@@ -217,14 +217,14 @@ def ai_vs_player_game_loop(model):
 
             if event.type == pygame.QUIT:
                 game_over = True
-            elif event.type == pygame.MOUSEBUTTONDOWN and turn == 1:
+            elif event.type == pygame.MOUSEBUTTONDOWN and turn == -1:
                 player = turn
                 pos = pygame.mouse.get_pos()
                 row = pos[1] // SQUARE_SIZE
                 col = pos[0] // SQUARE_SIZE
                 if make_move(row, col, player):
                     turn *= -1
-            elif turn == -1:
+            elif turn == 1:
                 player = turn
                 time.sleep(1)
                 start_time = time.time()
