@@ -37,11 +37,10 @@ screen = pygame.display.set_mode(BOARD_SIZE)
 # Load the game font
 font = pygame.font.SysFont('Calibri', 25)
 
-def make_board_matrices(board):
-
+def make_board_matrices(board, tile):
 
     np_board = np.array(board)
-    opp_tile = 1
+    opp_tile = 1 if tile == -1 else -1
     player_positions = np.argwhere(np_board == -1)
     opponent_positions = np.argwhere(np_board == 1)
 
@@ -144,7 +143,60 @@ def convert_move_label(prediction):
         row = (prediction + 4) // 8
         col = (prediction + 4) - row * 8
     return (row,col)
-def ai_game_loop(model):
+
+def ai_vs_ai_game_loop(model):
+    turn = 1
+    game_over = False
+
+    # Turn model into evaluation mode
+    model.eval()
+
+    while not game_over:
+        for event in pygame.event.get():
+
+            # If there are no available switch turns
+            if not is_valid_move_available(turn):
+                print("Player", turn, "has not valid moves. Skipping turn.")
+                turn *= -1
+                if not is_valid_move_available(turn):
+                    print('THE GAME IS OVER. THANK YOU FOR PLAYING AND HAVE A NICE DAY')
+                    time.sleep(7)
+                    game_over = True
+
+            if event.type == pygame.QUIT:
+                game_over = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                player = turn
+                start_time = time.time()
+
+                # Get 3x8x8 representation of board
+                board_matrix = torch.tensor(make_board_matrices(board, turn)).float()
+
+                # Add dimension to make 4D input
+                board_matrix = board_matrix.unsqueeze(0)
+                logits = model(board_matrix)
+                predictions = torch.argsort(logits, dim=1, descending=True).flatten()
+                for i in range(len(predictions)):
+                    prediction = predictions[i].item()
+                    row, col = convert_move_label(prediction)
+                    if make_move(row, col, player):
+                        turn *= -1
+                        if i > 0: print("Attempts: ", i)
+                        end_time = time.time()
+                        elapsed = (end_time - start_time) * 1000
+                        print("Prediction Time: {:.2f} ms".format(elapsed))
+                        break
+
+        screen.fill(BLACK)
+        draw_board()
+        black_score, white_score = get_score()
+        black_text = font.render("Black: {}".format(black_score), True, RED)
+        white_text = font.render("White: {}".format(white_score), True, RED)
+        screen.blit(black_text, (10, 10))
+        screen.blit(white_text, (10, 40))
+        pygame.display.flip()
+
+def ai_vs_player_game_loop(model):
     turn = 1
     game_over = False
 
@@ -177,7 +229,7 @@ def ai_game_loop(model):
                 time.sleep(1)
                 start_time = time.time()
                 # Get 3x8x8 representation of board
-                board_matrix = torch.tensor(make_board_matrices(board)).float()
+                board_matrix = torch.tensor(make_board_matrices(board, turn)).float()
                 # Add dimension to make 4D input
                 board_matrix = board_matrix.unsqueeze(0)
                 logits = model(board_matrix)
@@ -256,7 +308,8 @@ if __name__ == '__main__':
     best_model.load_state_dict(torch.load(os.path.join('models', timestr + '.pth')))
 
     # Start the game loop
-    ai_game_loop(best_model)
+    # ai_vs_player_game_loop(best_model)
+    ai_vs_ai_game_loop(best_model)
 
 # Quit pygame
 pygame.quit()
