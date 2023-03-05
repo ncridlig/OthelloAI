@@ -1,4 +1,10 @@
 import pygame
+import torch
+from model import Conv8
+import os
+import numpy as np
+import time
+import pdb
 
 # Define some colors
 BLACK = (0, 0, 0)
@@ -6,6 +12,7 @@ WHITE = (255, 255, 255)
 GREEN = (144, 238, 144)
 GREY = (105, 105, 105)
 RED = (220, 0, 0)
+use_ai = True
 
 # Set the dimensions of the game board
 BOARD_SIZE = (400, 400)
@@ -29,6 +36,26 @@ screen = pygame.display.set_mode(BOARD_SIZE)
 
 # Load the game font
 font = pygame.font.SysFont('Calibri', 25)
+
+def make_board_matrices(board):
+
+
+    np_board = np.array(board)
+    opp_tile = 1
+    player_positions = np.argwhere(np_board == -1)
+    opponent_positions = np.argwhere(np_board == 1)
+
+    # Make player and opponent matrices
+    player_matrix = np.zeros(shape=(8,8))
+    player_matrix[player_positions[:,0], player_positions[:,1]] = 1
+
+    opponent_matrix = np.zeros(shape=(8,8))
+    opponent_matrix[opponent_positions[:,0], opponent_positions[:,1]] = 1
+
+    # Stack matrices together and add regularization matrix
+    board_matrix = np.array([player_matrix, opponent_matrix, np.ones((8,8))])
+
+    return board_matrix
 
 # Define a function to draw the game board
 def draw_board():
@@ -105,30 +132,104 @@ def get_score():
                 white_score += 1
     return (black_score, white_score)
 
-# Define the game loop
-def game_loop():
+def convert_move_label(prediction):
+
+    if prediction <= 26:
+        row = prediction // 8
+        col = prediction - row*8
+    elif 27 <= prediction <= 32:
+        row = (prediction+2) // 8
+        col = (prediction+2) - row * 8
+    else:
+        row = (prediction + 4) // 8
+        col = (prediction + 4) - row * 8
+    return (row,col)
+def ai_game_loop(model):
     turn = 1
     game_over = False
+
+    # Turn model into evaluation mode
+    model.eval()
+
     while not game_over:
         for event in pygame.event.get():
+
+            # If there are no available switch turns
+            if not is_valid_move_available(turn):
+                print("Player", turn, "has not valid moves. Skipping turn.")
+                turn *= -1
+                if not is_valid_move_available(turn):
+                    print('THE GAME IS OVER. THANK YOU FOR PLAYING AND HAVE A NICE DAY')
+                    time.sleep(7)
+                    game_over = True
+
             if event.type == pygame.QUIT:
                 game_over = True
-            # elif event.type == pygame.VIDEORESIZE: TODO IMPLEMENT RESIZABLE WINDOW
-                # BOARD_SIZE = (event.w, event.h)
-                #screen = pygame.display.set_mode(BOARD_SIZE, pygame.RESIZABLE)
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if turn == 1:
-                    player = 1
-                else:
-                    player = -1
+            elif event.type == pygame.MOUSEBUTTONDOWN and turn == 1:
+                player = turn
                 pos = pygame.mouse.get_pos()
                 row = pos[1] // SQUARE_SIZE
                 col = pos[0] // SQUARE_SIZE
                 if make_move(row, col, player):
-                    if is_valid_move_available(-player):
+                    turn *= -1
+            elif turn == -1:
+                player = turn
+                time.sleep(1)
+                start_time = time.time()
+                # Get 3x8x8 representation of board
+                board_matrix = torch.tensor(make_board_matrices(board)).float()
+                # Add dimension to make 4D input
+                board_matrix = board_matrix.unsqueeze(0)
+                logits = model(board_matrix)
+                predictions = torch.argsort(logits, dim=1, descending=True).flatten()
+                for i in range(len(predictions)):
+                    prediction = predictions[i].item()
+                    row, col = convert_move_label(prediction)
+                    if make_move(row, col, player):
                         turn *= -1
-                    else:
-                        print("Player", player, "has no valid moves. Skipping turn.")
+                        if i > 0: print("Attempts: ", i)
+                        end_time = time.time()
+                        elapsed = (end_time - start_time) * 1000
+                        print("Prediction Time: {:.2f} ms".format(elapsed))
+                        break
+
+        screen.fill(BLACK)
+        draw_board()
+        black_score, white_score = get_score()
+        black_text = font.render("Black: {}".format(black_score), True, RED)
+        white_text = font.render("White: {}".format(white_score), True, RED)
+        screen.blit(black_text, (10, 10))
+        screen.blit(white_text, (10, 40))
+        pygame.display.flip()
+
+
+# Define the game loop
+def game_loop():
+
+    # Which player turn it is
+    turn = 1
+    game_over = False
+    while not game_over:
+        for event in pygame.event.get():
+
+            # If there are no available switch turns
+            if not is_valid_move_available(turn):
+                print("Player", turn, "has not valid moves. Skipping turn.")
+                turn *= -1
+                if not is_valid_move_available(turn):
+                    print('THE GAME IS OVER. THANK YOU FOR PLAYING AND HAVE A NICE DAY')
+                    game_over = True
+
+            if event.type == pygame.QUIT:
+                game_over = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                player = turn
+                pos = pygame.mouse.get_pos()
+                row = pos[1] // SQUARE_SIZE
+                col = pos[0] // SQUARE_SIZE
+                if make_move(row, col, player):
+                    turn *= -1
+
         screen.fill(BLACK)
         draw_board()
         black_score, white_score = get_score()
@@ -148,8 +249,14 @@ def is_valid_move_available(player):
 
 
 if __name__ == '__main__':
+
+    # Load the best model and evaluate it on the test set
+    best_model = Conv8()
+    timestr = '20230304-160909'
+    best_model.load_state_dict(torch.load(os.path.join('models', timestr + '.pth')))
+
     # Start the game loop
-    game_loop()
+    ai_game_loop(best_model)
 
 # Quit pygame
 pygame.quit()
