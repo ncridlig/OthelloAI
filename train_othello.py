@@ -3,7 +3,6 @@ import os
 import pdb
 
 import pandas as pd
-
 os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
 import warnings
 warnings.filterwarnings('ignore')
@@ -17,6 +16,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from model import Conv8
 from copy import deepcopy
 import time
+from torch.optim.swa_utils import AveragedModel, SWALR
 
 def compute_accuracy(logits, labels, args):
 
@@ -95,6 +95,11 @@ def normal_train(model, train_loader, val_loader, args):
     # Initialize the cross entropy and Adam optimizer to update weights
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+
+    if args.swa_enabled:
+        swa_model = AveragedModel(model)
+        swa_scheduler = SWALR(optimizer, swa_lr=args.learning_rate)
+
     epochs = args.epochs
 
     # Used to save the best model
@@ -106,7 +111,12 @@ def normal_train(model, train_loader, val_loader, args):
 
         # Initializing running accuracy and loss statistics
         losses = 0
-        model.train()
+
+        if args.swa_enabled:
+            swa_model.train()
+        else:
+            model.train()
+
         running_accuracy = [0, 0, 0]
         num_examples = 0
         for step, (inputs, labels) in progress_bar(enumerate(train_loader), total=len(train_loader)):
@@ -128,6 +138,11 @@ def normal_train(model, train_loader, val_loader, args):
             loss = criterion(logits, labels)
             loss.backward()
             optimizer.step()  # backprop to update the weights
+
+            if args.swa_enabled:
+                swa_model.update_parameters(model)
+                swa_scheduler.step()
+
             optimizer.zero_grad()
             losses += loss.item()
 
@@ -169,13 +184,13 @@ def params():
     :return: argparser
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--learning-rate", default=5e-4, type=float,
+    parser.add_argument("--learning-rate", default=1e-3, type=float,
                         help="Model learning rate starting point.")
     parser.add_argument("--batch-size", default=4096, type=int,
                         help="Batch size per GPU/CPU for training and evaluation.")
     parser.add_argument("--weight-decay", default=1e-4 , type=float,
                         help="L2 Regularization")
-    parser.add_argument("--epochs", default=8, type=int,
+    parser.add_argument("--epochs", default=1, type=int,
                         help="Number of epochs to train for")
     parser.add_argument("--swa-enabled", action='store_true',
                         help="Enables Stochastic Weighting Average")
@@ -278,7 +293,7 @@ if __name__ == '__main__':
 
     # Load the best model and evaluate it on the test set
     best_model = Conv8()
-    best_model.load_state_dict(torch.load(os.path.join('models', timestr, 'best_model.pth')))
+    best_model.load_state_dict(torch.load(os.path.join('models', timestr + '.pth')))
 
     if torch.cuda.is_available():
         best_model = best_model.cuda()
