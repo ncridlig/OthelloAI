@@ -1,4 +1,4 @@
-
+import torch
 import torch.nn as nn
 
 class Conv8(nn.Module):
@@ -6,7 +6,7 @@ class Conv8(nn.Module):
         super().__init__()
 
         self.layer_1 = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=3, out_channels=64, kernel_size=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU()
         )
@@ -48,14 +48,14 @@ class Conv8(nn.Module):
         )
 
         self.layer_8 = nn.Sequential(
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=2),
             nn.BatchNorm2d(256),
             nn.ReLU()
         )
         
         self.fcn = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(256*8*8, 128),
+            nn.Linear(256*4*4, 128),
             nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Linear(128, 60)

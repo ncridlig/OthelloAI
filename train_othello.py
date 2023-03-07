@@ -16,6 +16,8 @@ from torch.utils.data import DataLoader, TensorDataset
 from model import Conv8
 from copy import deepcopy
 import time
+from torchvision import models
+from torchvision import transforms
 from torch.optim.swa_utils import AveragedModel, SWALR
 
 def compute_accuracy(logits, labels, args):
