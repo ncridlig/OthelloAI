@@ -304,7 +304,7 @@ if __name__ == '__main__':
 
     # Load the best model and evaluate it on the test set
     best_model = Conv8()
-    timestr = '20230306-162030'
+    timestr = '20230306-231839'
     best_model.load_state_dict(torch.load(os.path.join('models', timestr + '.pth')))
 
     # Start the game loop
