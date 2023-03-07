@@ -240,14 +240,14 @@ def save_experiment(args, statistics):
 def load_data():
 
     # Load data and labels from .npy files
-    train_data = np.load('OthelloData/train_data.npy')
-    train_labels = np.load('OthelloData/train_labels.npy')
+    train_data = np.load('OthelloData/train_data_large.npy')
+    train_labels = np.load('OthelloData/train_labels_large.npy')
 
-    test_data = np.load('OthelloData/test_data.npy')
-    test_labels = np.load('OthelloData/test_labels.npy')
+    test_data = np.load('OthelloData/test_data_large.npy')
+    test_labels = np.load('OthelloData/test_labels_large.npy')
 
-    val_data = np.load('OthelloData/val_data.npy')
-    val_labels = np.load('OthelloData/val_labels.npy')
+    val_data = np.load('OthelloData/val_data_large.npy')
+    val_labels = np.load('OthelloData/val_labels_large.npy')
 
     # Convert to PyTorch Tensors
     train_data = torch.from_numpy(train_data)
