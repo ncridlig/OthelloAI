@@ -302,10 +302,17 @@ def is_valid_move_available(player):
 
 if __name__ == '__main__':
 
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    elif torch.backends.mps.is_available() and torch.backends.mps.is_built():
+        device = torch.device('mps')
+    else:
+        device = torch.device('cpu')
+
     # Load the best model and evaluate it on the test set
     best_model = Conv8()
     timestr = '20230306-231839'
-    best_model.load_state_dict(torch.load(os.path.join('models', timestr + '.pth')))
+    best_model.load_state_dict(torch.load(os.path.join('models', timestr + '.pth'), map_location=device))
 
     # Start the game loop
     ai_vs_player_game_loop(best_model)
