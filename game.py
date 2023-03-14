@@ -26,10 +26,10 @@ pygame.display.set_caption("Othello")
 
 # Create the game board
 board = [[0] * 8 for _ in range(8)]
-board[3][3] = 1
-board[4][4] = 1
-board[3][4] = -1
-board[4][3] = -1
+board[3][3] = -1
+board[4][4] = -1
+board[3][4] = 1
+board[4][3] = 1
 
 # Create the game window
 screen = pygame.display.set_mode(BOARD_SIZE)
