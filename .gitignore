@@ -1,3 +1,19 @@
 /OthelloData/
 .DS_Store
 __pycache__/model.cpython-39.pyc
+*.mp4
+*.mov
+Othello Presentation.mp4.zip
+models/20230306-163025.pth
+models/20230306-162508.pth
+models/20230306-162030.pth
+models/20230306-155536.pth
+models/20230306-154749.pth
+models/20230306-153920.pth
+models/20230304-162334.pth
+models/20230304-161908.pth
+models/20230304-160909.pth
+models/20230304-155656.pth
+models/20230304-153412.pth
+models/20230307-080101.pth
+models/20230306-235449.pth

@@ -4,7 +4,6 @@ from model import Conv8
 import os
 import numpy as np
 import time
-import pdb
 
 # Define some colors
 BLACK = (0, 0, 0)
