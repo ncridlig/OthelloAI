@@ -34,3 +34,10 @@ You just need to have Python 3.7+ installed (3.10+ for the simplified typehintin
     ```bash
     python game.py
     ```
+
+## Additionally
+View our presentation. 
+
+[![Othello AI](https://img.youtube.com/vi/4uyaCkAwKLU/0.jpg)](https://www.youtube.com/watch?v=4uyaCkAwKLU)
+
+You play first as the black player. Scores are viewable in the top left of the game board. Every move inference time is printed to the console. The game closes automatically 7 seconds after a player wins.
